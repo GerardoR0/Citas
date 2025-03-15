@@ -26,6 +26,6 @@ export const obtenerUsuarios = async () => {
       return response.data;
     } catch (error) {
       console.error("Error al obtener citas:", error);
-      throw error;
+      return error;
     }
   };

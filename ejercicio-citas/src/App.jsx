@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { obtenerUsuarios, obtenerCitasPorUsuario } from "./assets/API/axios";
 import "./App.css";
 
@@ -26,9 +26,7 @@ function App() {
     const obtenerCitas = async () => {
       if (usuarioSeleccionado) {
         try {
-          const citasObtenidas = await obtenerCitasPorUsuario(
-            usuarioSeleccionado
-          );
+          const citasObtenidas = await obtenerCitasPorUsuario(usuarioSeleccionado);
           setCitas(citasObtenidas);
         } catch (error) {
           console.error("Error al obtener citas:", error);
@@ -48,11 +46,10 @@ function App() {
     "Domingo",
   ];
 
-  const horarios = Array.from({ length: 12 }, (_, i) => `${i + 7}:00`);
+  const horarios = Array.from({ length: 11 }, (_, i) => `${i + 9}:00`);
 
   return (
     <div className="agenda-container">
-      {/* Selector de persona */}
       <div className="selector-persona">
         <label>Seleccionar persona: </label>
         <select
@@ -67,38 +64,10 @@ function App() {
         </select>
       </div>
 
-      {/* Mostrar el nombre de la persona seleccionada */}
       <h1>
         Agenda de {usuarios.find((u) => u.id === usuarioSeleccionado)?.nombre}
       </h1>
 
-      {/* Formulario para agregar una nueva cita */}
-      {/* <div className="formulario">
-        <h2>Agregar Nueva Cita</h2>
-        <input
-          type="date"
-          value={nuevaCita.fecha}
-          onChange={(e) =>
-            setNuevaCita({ ...nuevaCita, fecha: e.target.value })
-          }
-        />
-        <input
-          type="time"
-          value={nuevaCita.hora}
-          onChange={(e) => setNuevaCita({ ...nuevaCita, hora: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Descripción"
-          value={nuevaCita.descripcion}
-          onChange={(e) =>
-            setNuevaCita({ ...nuevaCita, descripcion: e.target.value })
-          }
-        />
-        <button onClick={handleAgregarCita}>Agregar Cita</button>
-      </div> */}
-
-      {/* Tabla de agenda semanal */}
       <div className="agenda-semanal">
         <div className="dias-semana">
           {diasSemana.map((dia) => (
@@ -115,21 +84,22 @@ function App() {
           ))}
         </div>
         <div className="citas">
-          {citas.map((cita) => (
-            <div
-              key={cita.id}
-              className="cita"
-              style={{
-                gridColumn: diasSemana.indexOf(cita.fecha) + 1,
-                gridRow: horarios.indexOf(cita.hora) + 2,
-              }}
-            >
-              <p>{cita.descripcion}</p>
-              {/* <button onClick={() => handleEliminarCita(cita.id)}>
-                Eliminar
-              </button> */}
-            </div>
-          ))}
+          {citas.map((cita) => {
+            const columna = diasSemana.indexOf(cita.fecha.trim()) + 1;
+            const fila = horarios.indexOf(cita.hora.trim()) + 1;
+            return (
+              <div
+                key={cita.id}
+                className="cita"
+                style={{
+                  gridColumn: columna,
+                  gridRow: fila,
+                }}
+              >
+                <p>{cita.actividad}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
