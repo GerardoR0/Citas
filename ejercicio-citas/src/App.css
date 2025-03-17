@@ -4,106 +4,87 @@
   padding: 2rem;
   text-align: center;
 }
-
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #242424;
-}
-
-.agenda-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0;
-  background-color: #242424;
-}
-
-.selector-persona label {
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.selector-persona select {
-  padding: 1rem;
-  font-size: 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #c9c9c9;
-}
-
-h1 {
-  text-align: center;
-  color: #c9c9c9;
-  margin-bottom: 2rem;
-}
-
-.agenda-semanal {
-  display: grid;
-  grid-template-columns: 100px repeat(7, 1fr); 
-  grid-template-rows: auto repeat(11, 50px); 
-  gap: 10px;
-}
-
-/* Días de la semana */
-.dias-semana {
-  grid-column: 2 / span 7; 
-  grid-row: 1; 
-  display: flex;
-}
-
-.dias-semana .dia {
-  flex: 1;
-  margin: 0 5px;
-  padding: 10px;
-  text-align: center;
-  border-radius: 1rem;
-  font-weight: bold;
-  background-color: #9d00ff;
+.textSelect{
   color: #f3f3f3;
 }
-
-/* Horarios */
-.horarios {
-  grid-column: 1;
-  grid-row: 2 / span 11; 
+.selectUser{
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+.btnOpenModal{
+  margin: 20px;
+  padding: 10px;
+  background: #000128;
+  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+.btnOpenModal:hover{
+  background: #f3f3f3;
+  color: #000128;
+  transition: color 0.3s ease; 
+  transform: scale(1.5);
+}
+.rbc-calendar{
+  background: transparent !important;
+}
+.rbc-toolbar button{
+  background: #000128 !important;
+  color: #f3f3f3 !important;
+  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) !important;
+}
+.rbc-toolbar button:hover{
+  background: #f3f3f3 !important;
+  color: #000128 !important;
+  transition: color 0.3s ease !important; 
+  transform: scale(1.2) !important;
+}
+.rbc-toolbar-label{
+  color: #f3f3f3 !important;
+}
+.rbc-header{
+  color: #f3f3f3 !important;
+}
+.rbc-date-cell{
+  color: #f3f3f3 !important ;
+}
+.rbc-today {
+  background-color: #2a2b5f !important;
+}
+.rbc-label {
+  color: #fff;
+}
+.rbc-off-range-bg{
+  background: #000128 !important;
+}
+.rbc-off-range {
+  color: #f3f3f3 !important;
+}
+.textModal{
+  text-align: center;
+  margin: auto;
+}
+.labelStyleModal{
   display: flex;
   flex-direction: column;
+  align-items: stretch;
 }
-
-.horarios .hora {
-  background-color: #f3f3f3;
-  border-radius: 1rem;
-  padding: 0;
-  margin: 5px 0;
-  text-align: center;
-  border-right: 1px solid #ddd;
-  font-size: 14px;
-  color: #555;
-  height: 40px; 
+.btnModal{
+  display: flex;
+  justify-content: end;
 }
-
-/* Citas */
-.citas {
-  grid-column: 2 / span 7; 
-  grid-row: 2 / span 11; 
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(11, 50px); 
+.btnModal button{
+  background-color: #6c6c6c;
+  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  color: white;
+  border: none;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 1rem 0 0 1rem;
 }
-
-.citas .cita {
-  padding: 10px;
-  border: 1px solid #b6d4fe;
-  border-radius: 1rem;
-  font-size: 14px;
-  color: #333;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  background-color: #db4dff;
-  border-color: #f3f3f3;
-}
-
-.citas .cita p {
-  margin: 0;
+.btnModal button:hover{
+  background: #000128 !important;
+  color: #fff !important;
+  transition: color 0.3s ease !important; 
+  transform: scale(1.2) !important;
 }
