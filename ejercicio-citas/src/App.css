@@ -38,53 +38,12 @@
   transition: color 0.3s ease !important; 
   transform: scale(1.2) !important;
 }
-.rbc-toolbar-label{
+.rbc-toolbar-label, .rbc-header, .rbc-date-cell, .rbc-label, .rbc-off-range, .rbc-agenda-date-cell, .rbc-agenda-time-cell, .rbc-agenda-event-cell{
   color: #f3f3f3 !important;
-}
-.rbc-header{
-  color: #f3f3f3 !important;
-}
-.rbc-date-cell{
-  color: #f3f3f3 !important ;
 }
 .rbc-today {
   background-color: #2a2b5f !important;
 }
-.rbc-label {
-  color: #fff;
-}
 .rbc-off-range-bg{
   background: #000128 !important;
-}
-.rbc-off-range {
-  color: #f3f3f3 !important;
-}
-.textModal{
-  text-align: center;
-  margin: auto;
-}
-.labelStyleModal{
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-.btnModal{
-  display: flex;
-  justify-content: end;
-}
-.btnModal button{
-  background-color: #6c6c6c;
-  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-  color: white;
-  border: none;
-  padding: 5px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin: 1rem 0 0 1rem;
-}
-.btnModal button:hover{
-  background: #000128 !important;
-  color: #fff !important;
-  transition: color 0.3s ease !important; 
-  transform: scale(1.2) !important;
 }

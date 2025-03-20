@@ -1,5 +1,5 @@
 import moment from "moment";
-import Modal from "react-modal";
+import Swal from 'sweetalert2';
 import api from "./assets/API/api";
 import React, { useEffect, useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
@@ -8,43 +8,12 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = momentLocalizer(moment);
 
-// Estilos del Modal
-const customStyles = {
-  content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)",
-    width: "400px",
-    padding: "20px",
-    color: "#333", // Más suave que negro puro
-    background: "#f3f3f3",
-    borderRadius: "10px", // Más redondeado
-    overflow: "hidden",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.3)",
-    zIndex: "1000",
-  },
-  overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Fondo opaco detrás del modal
-    zIndex: "999",
-  },
-};
-
-// Configura el elemento raíz para react-modal (en tu archivo index.js)
-Modal.setAppElement("#root");
-
 function App() {
   const [users, setUser] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [events, setEvent] = useState([]);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState({
-    title: "",
-    start: "",
-  });
+  const [view, setView] = useState("month");
+  const [date, setDate] = useState(new Date());
 
   // Obtener Usuarios
   useEffect(() => {
@@ -53,7 +22,12 @@ function App() {
         setUser(res.data);
       })
       .catch((err) => {
-        console.log("Error al cargar usuarios:", err.message);
+        Swal.fire({
+          title: "Error al cargar usuarios",
+          text: "Por favor, intenta más tarde.",
+          icon: "error",
+          confirmButtonText: "Ok",
+        });
       });
   }, []);
 
@@ -70,62 +44,192 @@ function App() {
           setEvent(formatoEvents);
         })
         .catch((err) => {
-          console.log("Error al obtener citas:", err.message);
+          if (err.response && err.response.status === 404) {
+            Swal.fire({
+              title: "No hay citas para este usuario",
+              text: "Debes de crear una para poder visualizarlas.",
+              icon: "warning",
+              confirmButtonText: "Ok",
+            });
+          } else {
+            Swal.fire({
+              title: "Error al cargar citas",
+              text: "Por favor, intenta más tarde.",
+              icon: "error",
+              confirmButtonText: "Ok",
+            });
+          }
         });
     } else {
       setEvent([]);
     }
   }, [selectedUser]);
 
-  // Abrir modal para crear evento
-  const openModal = () => {
-    setModalIsOpen(true);
-  };
+  // Función para abrir el SweetAlert2 con el formulario
+  const openSweetAlertForm = () => {
+    Swal.fire({
+      title: "Crear Cita",
+      html:
+        `<input id="title" class="swal2-input" placeholder="Título de la Cita" required>` +
+        `<input id="start" type="datetime-local" class="swal2-input" required>`,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Agregar Cita",
+      cancelButtonText: "Cancelar",
+      preConfirm: () => {
+        const title = Swal.getPopup().querySelector("#title").value;
+        const start = Swal.getPopup().querySelector("#start").value;
 
-  // Cerrar modal
-  const closeModal = () => {
-    setModalIsOpen(false);
-    setNewEvent({
-      title: "",
-      start: "",
+        if (!title || !start) {
+          Swal.showValidationMessage("Por favor, completa todos los campos.");
+          return false;
+        }
+
+        return { title, start };
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const { title, start } = result.value;
+        const startDate = new Date(start);
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); 
+
+        const nuevaCita = {
+          title,
+          start: startDate,
+          end: endDate,
+        };
+
+        setEvent([...events, nuevaCita]);
+
+        api.agregarCita({ ...nuevaCita, UsuarioId: selectedUser.id })
+          .then(() => {
+            Swal.fire({
+              title: "Cita agregada correctamente",
+              text: "La cita ha sido agendada exitosamente.",
+              icon: "success",
+              confirmButtonText: "Ok",
+            });
+          })
+          .catch(() => {
+            Swal.fire({
+              title: "Error al agregar cita",
+              text: "Hubo un error al agregar la cita, intente nuevamente.",
+              icon: "error",
+              confirmButtonText: "Ok",
+            });
+          });
+      }
     });
   };
 
-  // Manejo de formulario
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewEvent({ ...newEvent, [name]: value });
+  //Función para editar un evento
+  const handleEditEvent = (event) => {
+    Swal.fire({
+      title: "Editar Cita",
+      html:
+        `<input id="title" class="swal2-input" placeholder="Título de la Cita" value="${event.title}" required>` +
+        `<input id="start" type="datetime-local" class="swal2-input" value="${moment(event.start).format("YYYY-MM-DDTHH:mm")}" required>`,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Guardar",
+      cancelButtonText: "Cancelar",
+      preConfirm: () => {
+        const title = Swal.getPopup().querySelector("#title").value;
+        const start = Swal.getPopup().querySelector("#start").value;
+  
+        if (!title || !start) {
+          Swal.showValidationMessage("Por favor, completa todos los campos.");
+          return false;
+        }
+  
+        return { title, start };
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const { title, start } = result.value;
+        const updatedEvent = {
+          ...event,
+          title,
+          start: new Date(start),
+          end: new Date(new Date(start).getTime() + 60 * 60 * 1000), 
+        };
+
+        const updatedEvents = events.map((ev) =>
+          ev === event ? updatedEvent : ev
+        );
+        setEvent(updatedEvents)
+
+        Swal.fire({
+          title: "Cita editada correctamente",
+          text: "La cita ha sido editada exitosamente.",
+          icon: "success",
+          confirmButtonText: "Ok"
+        })
+
+        // api.actualizarCita(updatedEvent) // Envía el evento actualizado
+        //   .then(() => {
+        //     Swal.fire({
+        //       title: "Cita actualizada",
+        //       text: "La cita ha sido actualizada exitosamente.",
+        //       icon: "success",
+        //       confirmButtonText: "Ok"
+        //     });
+        //   })
+        //   .catch(() => {
+        //     Swal.fire({
+        //       title: "Error al actualizar la cita",
+        //       text: "Hubo un error al actualizar la cita, intente nuevamente.",
+        //       icon: "error",
+        //       confirmButtonText: "Ok",
+        //     });
+        //   });
+      }
+    });
   };
 
-  // Manejo del envio de formulario
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const startDate = new Date(newEvent.start);
-    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Suma 1 hora
+   // Función para eliminar un evento
+   const handleDeleteEvent = (event) => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¡No podrás revertir esta acción!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedEvents = events.filter((ev) => ev !== event);
+        setEvent(updatedEvents);
 
-    const nuevaCita = {
-      title: newEvent.title,
-      start: startDate,
-      end: endDate,
-    };
+        Swal.fire({
+          title: "Cita eliminada correctamente",
+          text: "La cita ha sido eliminada exitosamente.",
+          icon: "success",
+          confirmButtonText: "Ok",
+        })
 
-    setEvent([...events, nuevaCita]);
-    closeModal();
-
-    api.agregarCita({ ...nuevaCita, UsuarioId: selectedUser.id })
-      .then((res) => {
-        console.log("Cita agregada correctamente", res.data);
-      })
-      .catch((err) => {
-        console.log("Error al agregar cita:", err.message);
-      });
+        // Enviar la eliminación al backend (opcional)
+      //   api.eliminarCita(event.id)
+      //     .then((res) => {
+      //       Swal.fire({
+      //         title: "Cita eliminada",
+      //         text: "La cita ha sido eliminada exitosamente.",
+      //         icon: "success",
+      //         confirmButtonText: "Ok",
+      //       });
+      //     })
+      //     .catch((err) => {
+      //       Swal.fire({
+      //         title: "Error al eliminar la cita",
+      //         text: "Hubo un error al eliminar la cita, intente nuevamente.",
+      //         icon: "error",
+      //         confirmButtonText: "Ok",
+      //       });
+      //     });
+      }
+    });
   };
 
-  // Estado para la vista actual
-  const [view, setView] = useState("month");
-
-  // Estado para la fecha actual
-  const [date, setDate] = useState(new Date());
 
   return (
     <div>
@@ -146,7 +250,7 @@ function App() {
         ))}
       </select>
 
-      <button className="btnOpenModal" onClick={openModal}>
+      <button className="btnOpenModal" onClick={openSweetAlertForm}>
         Crear Cita
       </button>
 
@@ -159,17 +263,25 @@ function App() {
         onView={(newView) => setView(newView)}
         date={date}
         onNavigate={(newDate) => setDate(newDate)}
-        views={["month", "week", "day"]}
+        views={["month", "week", "day", "agenda"]}
         defaultView="month"
-        style={{ height: 500, margin: "50px", backgroundColor: "white", color: "black"}}
-        messages={{
-          next: "Siguiente",
-          previous: "Anterior",
-          today: "Hoy",
-          month: "Mes",
-          week: "Semana",
-          day: "Día",
-          agenda: "Agenda",
+        style={{ height: 500, margin: "50px", backgroundColor: "white", color: "black" }}
+        onSelectEvent={(event) =>{
+          Swal.fire({
+            title: "Opciones de Cita",
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: "Editar",
+            denyButtonText: "Eliminar",
+            cancelButtonText: "Cerrar",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              handleEditEvent(event);
+            } 
+            else if (result.isDenied) {
+              handleDeleteEvent(event); 
+            }
+          })
         }}
         components={{
           toolbar: (props) => (
@@ -201,49 +313,17 @@ function App() {
                 >
                   Día
                 </button>
+                <button
+                  className={view === "agenda" ? "rbc-active" : ""}
+                  onClick={() => props.onView("agenda")}
+                >
+                  Agenda
+                </button>
               </div>
             </div>
           ),
         }}
       />
-
-      {/* Modal para crear cita */}
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal} // Usa onRequestClose en lugar de onClose
-        style={customStyles}
-        contentLabel="Crear Cita"
-      >
-        <h2 className="textModal">Crear Cita</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="labelStyleModal">
-            <label>Titulo de la Cita</label>
-            <input
-              type="text"
-              name="title"
-              value={newEvent.title}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="labelStyleModal">
-            <label>Fecha y Hora de la Cita</label>
-            <input
-              type="datetime-local"
-              name="start"
-              value={newEvent.start}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="btnModal">         
-          <button type="submit">Agregar Cita</button>
-          <button type="button" onClick={closeModal}>
-            Cancelar
-          </button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 }
